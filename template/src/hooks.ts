@@ -1,20 +1,24 @@
 export enum AvailableHooks {
-	receivedData = 'receivedData',
-	BeforeSendingData = 'BeforeSendingData'
+	onReceivedData = 'onReceivedData',
+	beforeSendingData = 'beforeSendingData'
 }
-export type receivedDataHook = (receivedData: any) => string;
-export type BeforeSendingDataHook = (messageToSend: any) => string;
+export type OnReceivedDataHook = (receivedData: any) => any;
+export type BeforeSendingDataHook = (messageToSend: any) => any;
+
+/**
+ * This class is used hook into different processes of the client wrapper.
+ */
 export class Hooks {
 	private static instance: Hooks;
 	
 	private hooks: {
-		BeforeSendingData: BeforeSendingDataHook[];
-		receivedData: receivedDataHook[];
+		beforeSendingData: BeforeSendingDataHook[];
+		onReceivedData: OnReceivedDataHook[];
 	};
 	private constructor() { 
 		this.hooks = {
-			BeforeSendingData: [],
-			receivedData: []
+			beforeSendingData: [],
+			onReceivedData: []
 		}
 	}
     public static getInstance(): Hooks {
@@ -23,35 +27,35 @@ export class Hooks {
         }
         return Hooks.instance;
 	}
-
-	
 	
 	/**
-	 * Register a hook for BeforeSendingData
+	 * Register a hook to be called right before data is being send.
+	 * 
+	 * Used to transform the data that is about to be send to different formats, encrypted, compressed etc.
 	 * @param hook
 	 */
 	public async registerBeforeSendingData(hook: BeforeSendingDataHook) {
-		this.hooks[AvailableHooks.BeforeSendingData]
-			? this.hooks[AvailableHooks.BeforeSendingData].push(hook)
+		this.hooks[AvailableHooks.beforeSendingData]
+			? this.hooks[AvailableHooks.beforeSendingData].push(hook)
 			: [hook];
+	}
+	public getBeforeSendingDataHook(): BeforeSendingDataHook[] {
+		return this.hooks[AvailableHooks.beforeSendingData];
 	}
 	
 	/**
-	 * Register a hook for BeforeSendingData
-	 * @param hook
+	 * Register a hook to be called when receiving data. 
+	 * 
+	 * Used for transforming the received data if altered by a 'beforeSendingData' hook.
+	 * 
+	 * @param hook to call
 	 */
-	public async registerreceivedData(hook: receivedDataHook) {
-		this.hooks[AvailableHooks.receivedData]
-			? this.hooks[AvailableHooks.receivedData].push(hook)
+	public async registerReceivedData(hook: OnReceivedDataHook) {
+		this.hooks[AvailableHooks.onReceivedData]
+			? this.hooks[AvailableHooks.onReceivedData].push(hook)
 			: [hook];
 	}
-	
-	
-	public getreceivedDataHook(): receivedDataHook[] {
-		return this.hooks[AvailableHooks.receivedData];
-	}
-	
-	public getBeforeSendingDataHook(): BeforeSendingDataHook[] {
-		return this.hooks[AvailableHooks.BeforeSendingData];
+	public getReceivedDataHook(): OnReceivedDataHook[] {
+		return this.hooks[AvailableHooks.onReceivedData];
 	}
 }
