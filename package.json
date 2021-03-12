@@ -98,6 +98,11 @@
 				"description": "Use promises as callbacks for reply operation",
 				"default": "false",
 				"required": false
+			},
+			"for": {
+				"description": "The normal view is to generate for an external API (you generating the client to interact with that API definition), but sometimes you also want to use code generation for API itself. Can either be 'external' or 'internal'",
+				"default": "external",
+				"required": false
 			}
 		},
 		"generator": ">=1.1.1 <2.0.0"
