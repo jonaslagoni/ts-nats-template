@@ -7,7 +7,7 @@ import { Reply } from '../../components/index/reply';
 import { Request } from '../../components/index/request';
 import { isRequestReply, isReplier, isRequester, isPubsub} from '../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { AsyncAPIDocument } from '@asyncapi/parser';
+import { IntentAsyncAPIDocument } from '@asyncapi/parser';
 
 /**
  * @typedef TemplateParameters
@@ -19,31 +19,31 @@ import { AsyncAPIDocument } from '@asyncapi/parser';
 /**
  * @typedef RenderArgument
  * @type {object}
- * @property {AsyncAPIDocument} asyncapi received from the generator.
+ * @property {IntentAsyncAPIDocument} asyncapi received from the generator.
  * @property {TemplateParameters} params received from the generator.
  */
 
 /**
  * Return the correct channel functions for the client based on whether a channel is `pubSub` or `requestReply`.
  * 
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  * @param {TemplateParameters} params 
  */
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function getChannelWrappers(asyncapi, params) {
   let channelWrappers = [];
-  const channelEntries = Object.keys(asyncapi.channels()).length ? Object.entries(asyncapi.channels()) : [];
-  channelWrappers = channelEntries.map(([channelName, channel]) => {
-    const publishMessage = channel.publish() ? channel.publish().message(0) : undefined;
-    const subscribeMessage = channel.subscribe() ? channel.subscribe().message(0) : undefined;
+  channelWrappers = asyncapi.channels().map((channel) => {
+    const publishMessage = channel.messagesPublishes();
+    const subscribeMessage = channel.messagesSubscribes();
     const defaultContentType = asyncapi.defaultContentType();
     const channelDescription = channel.description();
     const channelParameters = channel.parameters();
+    const channelPath = channel.path();
     if (isRequestReply(channel)) {
       if (isRequester(channel)) {
         return Request(
           defaultContentType, 
-          channelName, 
+          channelPath, 
           subscribeMessage,
           publishMessage,
           channelDescription,
@@ -53,7 +53,7 @@ function getChannelWrappers(asyncapi, params) {
       if (isReplier(channel)) {
         return Reply(
           defaultContentType, 
-          channelName, 
+          channelPath, 
           subscribeMessage,
           publishMessage,
           channelDescription,
@@ -64,10 +64,10 @@ function getChannelWrappers(asyncapi, params) {
     }
 
     if (isPubsub(channel)) {
-      if (channel.hasSubscribe()) {
+      if (channel.isPublishing('application')) {
         return Publish(
           defaultContentType, 
-          channelName, 
+          channelPath, 
           subscribeMessage, 
           channelDescription, 
           channelParameters);
@@ -75,7 +75,7 @@ function getChannelWrappers(asyncapi, params) {
       if (channel.hasPublish()) {
         return Subscribe(
           defaultContentType, 
-          channelName, 
+          channelPath, 
           publishMessage, 
           channelDescription, 
           channelParameters);

@@ -1,11 +1,11 @@
 import { containsBinaryPayload, containsStringPayload, containsJsonPayload, camelCase, pascalCase, messageHasNotNullPayload, getSchemaFileName} from '../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { AsyncAPIDocument } from '@asyncapi/parser';
+import { IntentAsyncAPIDocument } from '@asyncapi/parser';
 
 /**
  * Return disconnect function based on the payload
  * 
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  */
 function getDisconnectFunction(asyncapi) {
   let disconnectWithBinaryClient = '';
@@ -39,7 +39,7 @@ function getDisconnectFunction(asyncapi) {
 /**
  * Return connect function based on the payload
  * 
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  */
 function getConnectFunction(asyncapi) {
   let connectWithBinaryClient = '';
@@ -96,7 +96,7 @@ function getConnectFunction(asyncapi) {
 /**
  * Return isClosed function based on the payload
  * 
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  */
 function getIsClosedFunction(asyncapi) {
   let isClosedWithBinaryClient = '';
@@ -138,7 +138,7 @@ function getIsClosedFunction(asyncapi) {
 /**
  * Component which returns the standard setup for the client class
  * 
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  */
 export function getStandardClassCode(asyncapi) {
   return `
@@ -262,7 +262,7 @@ export function getStandardClassCode(asyncapi) {
 /**
  * Get all the standard import and exports
  *
- * @param {AsyncAPIDocument} asyncapi 
+ * @param {IntentAsyncAPIDocument} asyncapi 
  * @param {string} pathToRoot 
  * @param {string} channelPath 
  */
@@ -271,14 +271,16 @@ export function getStandardHeaderCode(asyncapi, pathToRoot, channelPath) {
   //Import the channel code and re-export them
   const imports = [];
   const exports = [];
-  for (const [channelName] of Object.entries(channels)) {
-    const camelCaseChannelName = camelCase(channelName);
-    imports.push(`import * as ${camelCaseChannelName}Channel from "${channelPath}/${pascalCase(channelName)}";`);
+
+  for (const channel of channels) {
+    const camelCaseChannelName = camelCase(channel.path());
+    imports.push(`import * as ${camelCaseChannelName}Channel from "${channelPath}/${pascalCase(channel.path())}";`);
     exports.push(`export {${camelCaseChannelName}Channel};`);
   }
 
   //Import the messages and re-export them
-  for (const [, message] of asyncapi.allMessages()) {
+  //Does not matter which role it is for
+  for (const message of asyncapi.messages('application')) {
     if (messageHasNotNullPayload(message.payload())) {
       const schemaName = getSchemaFileName(message.payload().uid());
       imports.push(`import {${schemaName}} from "${pathToRoot}/schemas/${schemaName}";`);
