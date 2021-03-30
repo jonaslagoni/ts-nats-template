@@ -1,5 +1,5 @@
 // eslint-disable-next-line no-unused-vars
-import { Operation, Channel } from '@asyncapi/parser';
+import { Operation, IntentChannel } from '@asyncapi/parser';
 
 /**
  * Wrapper to include subscriptions option code if specified in the spec.
@@ -7,8 +7,8 @@ import { Operation, Channel } from '@asyncapi/parser';
  * @param {Operation} operation to check for queue bindings on 
  */
 export function includeUnsubAfterForSubscription(operation) {
-  if (operation !== undefined && operation.hasBinding('nats') && operation.binding('nats').unsubAfter) {
-    return `subscribeOptions.max = '${operation.binding('nats').unsubAfter}';`;
+  if (operation !== undefined && operation.hasBinding('nats', 'unsubAfter')) {
+    return `subscribeOptions.max = '${operation.binding('nats', 'unsubAfter')}';`;
   }
   return '';
 }
@@ -28,13 +28,12 @@ export function includeQueueForSubscription(operation) {
 /**
  * Is the channel a publish and subscribe. This is the default type if none is defined.
  * 
- * @param {Channel} channel 
+ * @param {IntentChannel} channel 
  * @returns {boolean}
  */
 export function isPubsub(channel) {
-  if (!channel.hasBinding('nats') ||
-      !channel.binding('nats').is || 
-      channel.binding('nats').is === 'pubsub') {
+  if (!channel.hasBinding('nats', 'is') ||
+      channel.binding('nats', 'is') === 'pubsub') {
     return true;
   }
   return false;
@@ -43,13 +42,12 @@ export function isPubsub(channel) {
 /**
  * Is the channel a request and reply.
  * 
- * @param {Channel} channel 
+ * @param {IntentChannel} channel 
  * @returns {boolean}
  */
 export function isRequestReply(channel) {
-  if (channel.hasBinding('nats') &&
-      channel.binding('nats').is && 
-      channel.binding('nats').is === 'requestReply') {
+  if (channel.hasBinding('nats', 'is') &&
+      channel.binding('nats', 'is') === 'requestReply') {
     return true;
   }
   return false;
@@ -58,13 +56,14 @@ export function isRequestReply(channel) {
 /**
  * Is the request reply a requester
  * 
- * @param {Channel} channel 
+ * @param {IntentChannel} channel 
  * @returns {boolean}
  */
 export function isRequester(channel) {
   if (isRequestReply(channel) &&
-      channel.binding('nats').requestReply &&
-      channel.binding('nats').requestReply.is === 'requester') {
+    channel.hasBinding('nats', 'requestReply') &&
+    channel.binding('nats', 'requestReply').is &&
+    channel.binding('nats', 'requestReply').is === 'requester') {
     return true;
   }
   return false;
@@ -73,13 +72,13 @@ export function isRequester(channel) {
 /**
  * Is the request reply a replier
  * 
- * @param {Channel} channel 
+ * @param {IntentChannel} channel 
  * @returns {boolean}
  */
 export function isReplier(channel) {
   if (isRequestReply(channel) &&
-      channel.binding('nats').requestReply &&
-      channel.binding('nats').requestReply.is === 'replier') {
+    channel.binding('nats', 'requestReply').is &&
+    channel.binding('nats', 'requestReply').is=== 'replier') {
     return true;
   }
   return false;
