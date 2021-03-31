@@ -20,10 +20,10 @@ import { ChannelParameter } from '@asyncapi/parser';
   const streetlightIdParam = "" + channel.substring(0, streetlightIdEnd);
  * 
  * 
- * @param {string} channelName to be unwrapped
+ * @param {string} channelPath to be unwrapped
  * @param {Object.<string, ChannelParameter>} channelParameters the parameters which are to be unwrapped from the NATS topic.
  */
-export function unwrap(channelName, channelParameters) {
+export function unwrap(channelPath, channelParameters) {
   //Nothing to unwrap if no parameters are used
   if (Object.keys(channelParameters).length === 0) {
     return '';
@@ -78,7 +78,7 @@ export function unwrap(channelName, channelParameters) {
   });
 
   return `
-  const unmodifiedChannel = ${realizeChannelNameWithoutParameters(channelName)};
+  const unmodifiedChannel = ${realizeChannelNameWithoutParameters(channelPath)};
   let channel = msg.subject;
   ${parameterSplit.join('')}
   const splits = [

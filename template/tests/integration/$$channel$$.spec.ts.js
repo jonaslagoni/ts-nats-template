@@ -3,14 +3,14 @@ import { publish, subscribe } from '../../../components/test/publishSubscribe';
 import { request, reply } from '../../../components/test/requestReply';
 import { isRequestReply, isReplier, isRequester, isPubsub, pascalCase} from '../../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { Channel } from '@asyncapi/parser';
+import { IntentChannel } from '@asyncapi/parser';
 
 /**
  * Return the correct test code based on whether the channel is `pubSub` or `requestReply`
- * @param {Channel} channel 
- * @param {string} channelName 
+ * @param {IntentChannel} channel 
+ * @param {string} channelPath 
  */
-function getTestCode(channel, channelName) {
+function getTestCode(channel, channelPath) {
   const publishMessage = channel.publish() ? channel.publish().message(0) : undefined;
   const subscribeMessage = channel.subscribe() ? channel.subscribe().message(0) : undefined;
   const channelParameters = channel.parameters();
@@ -18,7 +18,7 @@ function getTestCode(channel, channelName) {
   if (isRequestReply(channel)) {
     if (isRequester(channel)) {
       testMethod = request(
-        channelName, 
+        channelPath, 
         publishMessage,
         subscribeMessage,
         channelParameters
@@ -26,7 +26,7 @@ function getTestCode(channel, channelName) {
     }
     if (isReplier(channel)) {
       testMethod = reply(
-        channelName, 
+        channelPath, 
         subscribeMessage,
         publishMessage,
         channelParameters
@@ -37,13 +37,13 @@ function getTestCode(channel, channelName) {
   if (isPubsub(channel)) {
     if (channel.hasSubscribe()) {
       testMethod = publish(
-        channelName, 
+        channelPath, 
         subscribeMessage, 
         channelParameters);
     }
     if (channel.hasPublish()) {
       testMethod = subscribe(
-        channelName, 
+        channelPath, 
         publishMessage, 
         channelParameters);
     }
@@ -51,8 +51,8 @@ function getTestCode(channel, channelName) {
   return testMethod;
 }
 
-export default function channelRender({ channelName, channel }) {
-  return <File name={`${pascalCase(channelName)}.spec.ts`}>
+export default function channelRender({ channelPath, channel }) {
+  return <File name={`${pascalCase(channelPath)}.spec.ts`}>
     {`
 import {describe, it, before} from 'mocha';
 import {expect} from 'chai';
@@ -60,7 +60,7 @@ import * as Client from '../../src'
 import * as TestClient from '../../src/testclient'
 import { NatsTypescriptTemplateError } from '../../src/NatsTypescriptTemplateError';
 
-describe('${channelName} can talk to itself', () => {
+describe('${channelPath} can talk to itself', () => {
     var client: Client.NatsAsyncApiClient;
     var testClient: TestClient.NatsAsyncApiTestClient;
     before(async () => {
@@ -74,7 +74,7 @@ describe('${channelName} can talk to itself', () => {
     });
 
     it('can send message', async () => {
-      ${getTestCode(channel, channelName)}
+      ${getTestCode(channel, channelPath)}
     });
 
     after( async () => {

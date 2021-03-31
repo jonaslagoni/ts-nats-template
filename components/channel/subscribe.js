@@ -8,11 +8,11 @@ import { Message, ChannelParameter } from '@asyncapi/parser';
  * Component which returns a function which subscribes to the given channel
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to subscribe to
+ * @param {string} channelPath to subscribe to
  * @param {Message} message which is being received
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  */
-export function Subscribe(defaultContentType, channelName, message, channelParameters, operation) {
+export function Subscribe(defaultContentType, channelPath, message, channelParameters, operation) {
   let parameters = [];
   parameters = Object.entries(channelParameters).map(([parameterName]) => {
     return `${camelCase(parameterName)}Param`;
@@ -37,7 +37,7 @@ export function Subscribe(defaultContentType, channelName, message, channelParam
   return `
   
   /**
-   * Internal functionality to setup subscription on the \`${channelName}\` channel 
+   * Internal functionality to setup subscription on the \`${channelPath}\` channel 
    * 
    * @param onDataCallback to call when messages are received
    * @param client to subscribe with
@@ -59,11 +59,11 @@ export function Subscribe(defaultContentType, channelName, message, channelParam
       ${includeUnsubAfterForSubscription(operation)}
 
       try{
-        let subscription = await client.subscribe(${realizeChannelName(channelParameters, channelName)}, (err, msg) => {
+        let subscription = await client.subscribe(${realizeChannelName(channelParameters, channelPath)}, (err, msg) => {
           if(err){
             onDataCallback(NatsTypescriptTemplateError.errorForCode(ErrorCode.INTERNAL_NATS_TS_ERROR, err));
           }else{
-            ${unwrap(channelName, channelParameters)}
+            ${unwrap(channelPath, channelParameters)}
 
             ${whenReceivingMessage}
           }

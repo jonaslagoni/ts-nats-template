@@ -2,42 +2,42 @@ import {generateExample} from '@asyncapi/generator-filters';
 import { pascalCase, getMessageType} from '../../utils/index';
 import {getReceivedVariableDeclaration, getExampleParameters, getFunctionParameters, getSetReceivedParameters, getVerifyExpectedParameters, getCallbackParameters} from './general';
 // eslint-disable-next-line no-unused-vars
-import { Message, ChannelParameter,  } from '@asyncapi/parser';
+import { Message, ChannelParameter } from '@asyncapi/parser';
 
 /**
  * Generate test code where the client publishes and test client subscribes
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} message 
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @returns 
  */
-export function publish(channelName, message, channelParameters) {
-  return publishSubscribe(channelName, message, channelParameters, true);
+export function publish(channelPath, message, channelParameters) {
+  return publishSubscribe(channelPath, message, channelParameters, true);
 }
 
 /**
  * Generate test code where the client subscribes and test client publishes
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} message 
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @returns 
  */
-export function subscribe(channelName, message, channelParameters) {
-  return publishSubscribe(channelName, message, channelParameters, false);
+export function subscribe(channelPath, message, channelParameters) {
+  return publishSubscribe(channelPath, message, channelParameters, false);
 }
 
 /**
  * Publish and subscribe test code
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} message 
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @param {Boolean} realClientPublish is it the real client the one to publish 
  * 
  */
-function publishSubscribe(channelName, message, channelParameters, realClientPublish) {
+function publishSubscribe(channelPath, message, channelParameters, realClientPublish) {
   const publishMessageExample = generateExample(message.payload().json());
   const exampleParameters = getExampleParameters(channelParameters);
   const receivedVariableDeclaration = getReceivedVariableDeclaration(channelParameters);
@@ -57,7 +57,7 @@ ${receivedVariableDeclaration}
 
 var publishMessage: ${publishClientClass}.${getMessageType(message)} = ${publishMessageExample};
 ${exampleParameters}
-const subscription = await ${subscribeClient}.subscribeTo${pascalCase(channelName)}((err, msg 
+const subscription = await ${subscribeClient}.subscribeTo${pascalCase(channelPath)}((err, msg 
       ${subscribeToCallbackParameters}) => {
         receivedError = err;
         receivedMsg = msg;
@@ -80,7 +80,7 @@ const tryAndWaitForResponse = new Promise((resolve, reject) => {
         }
     }, 100);
 });
-await ${publishClient}.publishTo${pascalCase(channelName)}(publishMessage ${functionParameters});
+await ${publishClient}.publishTo${pascalCase(channelPath)}(publishMessage ${functionParameters});
 await tryAndWaitForResponse;
 expect(receivedError).to.be.undefined;
 expect(receivedMsg).to.be.deep.equal(publishMessage);

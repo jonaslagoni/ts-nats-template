@@ -16,13 +16,13 @@ import { Message, ChannelParameter } from '@asyncapi/parser';
  * Component which returns a function which sets up a reply for a given channel
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to reply to
+ * @param {string} channelPath to reply to
  * @param {Message} replyMessage used to reply to request
  * @param {Message} receiveMessage which is received by the request 
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  * @param {TemplateParameters} params template parameters
  */
-export function Reply(defaultContentType, channelName, replyMessage, receiveMessage, channelParameters, params, operation) {
+export function Reply(defaultContentType, channelPath, replyMessage, receiveMessage, channelParameters, params, operation) {
   //Create an array of all the parameter names
   let parameters = [];
   parameters = Object.entries(channelParameters).map(([parameterName, _]) => {
@@ -61,7 +61,7 @@ export function Reply(defaultContentType, channelName, replyMessage, receiveMess
   
   return `
   /**
-   * Internal functionality to setup reply to the \`${channelName}\` channel
+   * Internal functionality to setup reply to the \`${channelPath}\` channel
    * 
    * @param onRequest called when request is received
    * @param onReplyError called when it was not possible to send the reply
@@ -87,11 +87,11 @@ export function Reply(defaultContentType, channelName, replyMessage, receiveMess
         ${includeQueueForSubscription(operation)}
         ${includeUnsubAfterForSubscription(operation)}
   
-        let subscription = await client.subscribe(${realizeChannelName(channelParameters, channelName)}, ${shouldPromisifyCallbacks(params) ? 'async' : ''} (err, msg) => {
+        let subscription = await client.subscribe(${realizeChannelName(channelParameters, channelPath)}, ${shouldPromisifyCallbacks(params) ? 'async' : ''} (err, msg) => {
           if (err) {
             onRequest(err);
           } else {
-            ${unwrap(channelName, channelParameters)}
+            ${unwrap(channelPath, channelParameters)}
             
             ${receivingOperation}
 

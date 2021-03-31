@@ -1,7 +1,7 @@
 import _ from 'lodash';
 const {FormatHelpers} = require('@asyncapi/generator-model-sdk');
 // eslint-disable-next-line no-unused-vars
-import { Message, Schema, IntentAsyncAPIDocument} from '@asyncapi/parser';
+import { IntentMessage, Schema, IntentAsyncAPIDocument} from '@asyncapi/parser';
 const contentTypeJSON = 'application/json';
 const contentTypeString = 'text/plain';
 const contentTypeBinary = 'application/octet-stream';
@@ -74,13 +74,13 @@ export function isJsonPayload(messageContentType, defaultContentType) {
 /**
  * Based on the payload type of the message choose a client
  * 
- * @param {Message} message 
+ * @param {IntentMessage[]} messages 
  * @param {string} defaultContentType 
  */
-export function getClientToUse(message, defaultContentType) {
-  if (isBinaryPayload(message.contentType(), defaultContentType)) {
+export function getClientToUse(messages, defaultContentType) {
+  if (isBinaryPayload(messages[0].contentType(), defaultContentType)) {
     return 'const nc: Client = this.binaryClient!;';
-  } else if (isStringPayload(message.contentType(), defaultContentType)) {
+  } else if (isStringPayload(messages[0].contentType(), defaultContentType)) {
     return 'const nc: Client = this.stringClient!;';
   }
   //Default to JSON client
@@ -88,25 +88,28 @@ export function getClientToUse(message, defaultContentType) {
 }
 
 /**
- * Checks if the message payload is of type null
+ * Checks if the messages has null type
  * 
- * @param {Schema} messagePayload to check
+ * @param {IntentMessage} message to check
  * @returns {boolean} does the payload contain null type 
  */
-export function messageHasNotNullPayload(messagePayload) {
-  return `${messagePayload.type()}` !== 'null';
+export function messageHasNotNullPayload(message) {
+  return `${message.payload().type()}` !== 'null';
 }
 
 /**
  * Get message type ensure that the correct message type is returned.
  * 
- * @param {Message} message to find the message type for
+ * @param {IntentMessage[]} messages to find the message type for
  */
-export function getMessageType(message) {
-  if (`${message.payload().type()}` === 'null') {
-    return 'null';
-  }
-  return `${getSchemaFileName(message.payload().uid())}`;
+export function getMessageType(messages) {
+  const messageTypes = messages.map((message) => {
+    if (`${message.payload().type()}` === 'null') {
+      return 'null';
+    } 
+    return `${getSchemaFileName(message.payload().uid())}`;
+  });
+  return messageTypes.join('|');
 }
 
 export function containsBinaryPayload(document) {

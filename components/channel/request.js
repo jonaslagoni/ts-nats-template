@@ -8,12 +8,12 @@ import { Message, ChannelParameter } from '@asyncapi/parser';
  * Component which returns a function which create a request to the given channel
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to request to
+ * @param {string} channelPath to request to
  * @param {Message} requestMessage used to send the request
  * @param {Message} replyMessage which is receive in the reply
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  */
-export function Request(defaultContentType, channelName, requestMessage, replyMessage, channelParameters) {
+export function Request(defaultContentType, channelPath, requestMessage, replyMessage, channelParameters) {
   //Include timeout if specified in the document
   let includeTimeout =  '';
   const natsBindings = requestMessage.bindings('nats');
@@ -24,11 +24,11 @@ export function Request(defaultContentType, channelName, requestMessage, replyMe
   }
 
   //Determine the request operation based on whether the message type is null
-  let requestOperation = `msg = await client.request(${realizeChannelName(channelParameters, channelName)}, timeout, null)`;
+  let requestOperation = `msg = await client.request(${realizeChannelName(channelParameters, channelPath)}, timeout, null)`;
   if (messageHasNotNullPayload(requestMessage.payload())) {
     requestOperation = `
     ${OnSendingData(requestMessage, defaultContentType)}
-    msg = await client.request(${realizeChannelName(channelParameters, channelName)}, timeout, dataToSend)
+    msg = await client.request(${realizeChannelName(channelParameters, channelPath)}, timeout, dataToSend)
     `;
   }
 
@@ -49,7 +49,7 @@ export function Request(defaultContentType, channelName, requestMessage, replyMe
 
   return `
   /**
-   * Internal functionality to send request to the \`${channelName}\` channel 
+   * Internal functionality to send request to the \`${channelPath}\` channel 
    * 
    * @param requestMessage to send
    * @param client to send request with

@@ -6,7 +6,7 @@ import { Request } from '../../../components/channel/request';
 import { General } from '../../../components/channel/general';
 import { pascalCase, isRequestReply, isReplier, isRequester, isPubsub, camelCase} from '../../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { AsyncAPIDocument, Channel } from '@asyncapi/parser';
+import { IntentAsyncAPIDocument, IntentChannel } from '@asyncapi/parser';
 
 /**
  * @typedef TemplateParameters
@@ -17,21 +17,21 @@ import { AsyncAPIDocument, Channel } from '@asyncapi/parser';
 /**
  * @typedef RenderArgument
  * @type {object}
- * @property {AsyncAPIDocument} asyncapi received from the generator.
- * @property {Channel} channel 
- * @property {string} channelName 
+ * @property {IntentAsyncAPIDocument} asyncapi received from the generator.
+ * @property {IntentChannel} channel 
+ * @property {string} channelPath 
  * @property {TemplateParameters} params received from the generator.
  */
 
 /**
  * Return the correct channel component based on whether its `pubSub` or `requestReply`.
  * 
- * @param {AsyncAPIDocument} asyncapi 
- * @param {Channel} channel to determine the type of
- * @param {string} channelName 
+ * @param {IntentAsyncAPIDocument} asyncapi 
+ * @param {IntentChannel} channel to determine the type of
+ * @param {string} channelPath 
  * @param {TemplateParameters} params
  */
-function getChannelCode(asyncapi, channel, channelName, params) {
+function getChannelCode(asyncapi, channel, channelPath, params) {
   const publishOperation = channel.publish() ? channel.publish() : undefined;
   const publishMessage = publishOperation ? publishOperation.message(0) : undefined;
   const subscribeMessage = channel.subscribe() ? channel.subscribe().message(0) : undefined;
@@ -40,7 +40,7 @@ function getChannelCode(asyncapi, channel, channelName, params) {
     if (isRequester(channel)) {
       channelcode = Request(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         subscribeMessage,
         publishMessage,
         channel.parameters()
@@ -49,7 +49,7 @@ function getChannelCode(asyncapi, channel, channelName, params) {
     if (isReplier(channel)) {
       channelcode = Reply(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         subscribeMessage,
         publishMessage,
         channel.parameters(),
@@ -63,14 +63,14 @@ function getChannelCode(asyncapi, channel, channelName, params) {
     if (channel.hasSubscribe()) {
       channelcode = Publish(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         subscribeMessage, 
         channel.parameters());
     }
     if (channel.hasPublish()) {
       channelcode = Subscribe(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         publishMessage, 
         channel.parameters(),
         publishOperation);
@@ -84,20 +84,20 @@ function getChannelCode(asyncapi, channel, channelName, params) {
  * 
  * @param {RenderArgument} param0 render arguments received from the generator.
  */
-export default function channelRender({ asyncapi, channelName, channel, params }) {
+export default function channelRender({ asyncapi, channelPath, channel, params }) {
   const publishMessage = channel.publish() ? channel.publish().message(0) : undefined;
   const subscribeMessage = channel.subscribe() ? channel.subscribe().message(0) : undefined;
 
-  return <File name={`${pascalCase(channelName)}.ts`}>
+  return <File name={`${pascalCase(channelPath)}.ts`}>
     {`
 ${General(channel, publishMessage, subscribeMessage, '..')}
 
 /**
- * Module which wraps functionality for the \`${channelName}\` channel
- * @module ${camelCase(channelName)}
+ * Module which wraps functionality for the \`${channelPath}\` channel
+ * @module ${camelCase(channelPath)}
  */
 
-${getChannelCode(asyncapi, channel, channelName, params)}
+${getChannelCode(asyncapi, channel, channelPath, params)}
     `}
   </File>;
 }

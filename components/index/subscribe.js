@@ -6,15 +6,15 @@ import { Message, ChannelParameter } from '@asyncapi/parser';
  * Component which returns a subscribe to function for the client
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to publish to
+ * @param {string} channelPath to publish to
  * @param {Message} message which is being received
  * @param {string} messageDescription 
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  */
-export function Subscribe(defaultContentType, channelName, message, messageDescription, channelParameters) {
+export function Subscribe(defaultContentType, channelPath, message, messageDescription, channelParameters) {
   return  `
   /**
-    * Subscribe to the \`${channelName}\`
+    * Subscribe to the \`${channelPath}\`
     * 
     * ${messageDescription}
     * 
@@ -23,7 +23,7 @@ export function Subscribe(defaultContentType, channelName, message, messageDescr
     * @param flush ensure client is force flushed after subscribing
     * @param options to subscribe with, bindings from the AsyncAPI document overwrite these if specified
     */
-  public subscribeTo${pascalCase(channelName)}(
+  public subscribeTo${pascalCase(channelPath)}(
       onDataCallback : (
         err?: NatsTypescriptTemplateError, 
         msg?: ${getMessageType(message)}
@@ -37,7 +37,7 @@ export function Subscribe(defaultContentType, channelName, message, messageDescr
 
       if(nc){
         try{
-          const sub = await ${camelCase(channelName)}Channel.subscribe(
+          const sub = await ${camelCase(channelPath)}Channel.subscribe(
             onDataCallback, nc
             ${Object.keys(channelParameters).length ? ` ,${realizeParametersForChannelWithoutType(channelParameters)}` : ''}, 
             options

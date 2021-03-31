@@ -1,14 +1,14 @@
 
 import { messageHasNotNullPayload, getSchemaFileName } from '../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { Message, Channel} from '@asyncapi/parser';
+import { IntentMessage, IntentChannel} from '@asyncapi/parser';
 
 /**
  * Component which includes all the general imports used for the channel
  * 
- * @param {Channel} channel used to check if message should be imported
- * @param {Message} publishMessage to import 
- * @param {Message} subscribeMessage to import 
+ * @param {IntentChannel} channel used to check if message should be imported
+ * @param {IntentMessage[]} publishMessage to import 
+ * @param {IntentMessage[]} subscribeMessage to import 
  * @param {string} path to where schemas are located
  */
 export function General(channel, publishMessage, subscribeMessage, path) {

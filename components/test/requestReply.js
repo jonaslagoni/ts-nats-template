@@ -2,44 +2,44 @@ import {generateExample} from '@asyncapi/generator-filters';
 import { pascalCase, getMessageType} from '../../utils/index';
 import {getReceivedVariableDeclaration, getExampleParameters, getFunctionParameters, getSetReceivedParameters, getVerifyExpectedParameters, getCallbackParameters} from './general';
 // eslint-disable-next-line no-unused-vars
-import { Message, ChannelParameter,  } from '@asyncapi/parser';
+import { Message, ChannelParameter } from '@asyncapi/parser';
 
 /**
  * Generate test code where the client requests and test client replies
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} replyMessage 
  * @param {Message} receiveMessage 
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @returns 
  */
-export function request(channelName, replyMessage, receiveMessage, channelParameters) {
-  return requestReply(channelName, replyMessage, receiveMessage, channelParameters, true); 
+export function request(channelPath, replyMessage, receiveMessage, channelParameters) {
+  return requestReply(channelPath, replyMessage, receiveMessage, channelParameters, true); 
 }
 
 /**
  * Generate test code where the client replies and test client requests
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} replyMessage 
  * @param {Message} receiveMessage
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @returns 
  */
-export function reply(channelName, replyMessage, receiveMessage, channelParameters) {
-  return requestReply(channelName, replyMessage, receiveMessage, channelParameters, false); 
+export function reply(channelPath, replyMessage, receiveMessage, channelParameters) {
+  return requestReply(channelPath, replyMessage, receiveMessage, channelParameters, false); 
 }
 
 /**
  * Request and reply test code
  * 
- * @param {string} channelName 
+ * @param {string} channelPath 
  * @param {Message} replyMessage 
  * @param {Message} receiveMessage 
  * @param {Object.<string, ChannelParameter>} channelParameters 
  * @param {boolean} realClientRequests is it the real client which does the request
  */ 
-function requestReply(channelName, replyMessage, receiveMessage, channelParameters, realClientRequests) {
+function requestReply(channelPath, replyMessage, receiveMessage, channelParameters, realClientRequests) {
   const replyMessageExample = generateExample(replyMessage.payload().json());
   const receiveMessageExample = generateExample(receiveMessage.payload().json());
   const receivedVariableDeclaration = getReceivedVariableDeclaration(channelParameters);
@@ -61,7 +61,7 @@ ${receivedVariableDeclaration}
 var replyMessage: ${replierClientClass}.${getMessageType(replyMessage)} = ${replyMessageExample};
 var receiveMessage: ${requesterClientClass}.${getMessageType(receiveMessage)} = ${receiveMessageExample};
 ${exampleParameters}
-const replySubscription = await ${replierClient}.replyTo${pascalCase(channelName)}((err, msg 
+const replySubscription = await ${replierClient}.replyTo${pascalCase(channelPath)}((err, msg 
       ${replyCallbackParameters}) => {
     return new Promise((resolve, reject) => {
         receivedError = err;
@@ -73,7 +73,7 @@ const replySubscription = await ${replierClient}.replyTo${pascalCase(channelName
     ${functionParameters},
     true
 );
-var reply = await ${requesterClient}.request${pascalCase(channelName)}(receiveMessage ${functionParameters});
+var reply = await ${requesterClient}.request${pascalCase(channelPath)}(receiveMessage ${functionParameters});
 expect(reply).to.be.deep.equal(replyMessage)
 expect(receivedError).to.be.undefined;
 expect(receivedMsg).to.be.deep.equal(receiveMessage);

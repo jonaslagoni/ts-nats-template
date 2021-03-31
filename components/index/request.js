@@ -1,35 +1,35 @@
 import { pascalCase, camelCase, getMessageType, realizeParametersForChannelWrapper, getClientToUse, realizeParametersForChannelWithoutType, renderJSDocParameters} from '../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { Message, ChannelParameter } from '@asyncapi/parser';
+import { IntentMessage, ChannelParameter } from '@asyncapi/parser';
 
 /**
  * Component which returns a request to function for the client
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to request to 
- * @param {Message} requestMessage used to send the request
- * @param {Message} replyMessage which is receive in the reply
+ * @param {string} channelPath to request to 
+ * @param {IntentMessage[]} requestMessages used to send the request
+ * @param {IntentMessage[]} replyMessages which is receive in the reply
  * @param {string} messageDescription 
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  */
-export function Request(defaultContentType, channelName, requestMessage, replyMessage, messageDescription, channelParameters) {
+export function Request(defaultContentType, channelPath, requestMessages, replyMessages, messageDescription, channelParameters) {
   return `
     /**
-     * Reply to the \`${channelName}\` channel 
+     * Request to the \`${channelPath}\` channel 
      * 
      * ${messageDescription}
      * 
-     * @param requestMessage to send
+     * @param message to send
      ${renderJSDocParameters(channelParameters)}
      */
-     public request${pascalCase(channelName)}(
-       requestMessage:${getMessageType(requestMessage)} 
+     public request${pascalCase(channelPath)}(
+       message:${getMessageType(requestMessages)} 
         ${realizeParametersForChannelWrapper(channelParameters)}
-     ): Promise<${getMessageType(replyMessage)}> {
-      ${getClientToUse(requestMessage, defaultContentType)}
+     ): Promise<${getMessageType(replyMessages)}> {
+      ${getClientToUse(requestMessages, defaultContentType)}
        if(nc){
-         return ${camelCase(channelName)}Channel.request(
-           requestMessage, 
+         return ${camelCase(channelPath)}Channel.request(
+           message, 
            nc
            ${Object.keys(channelParameters).length ? `,${realizeParametersForChannelWithoutType(channelParameters)}` : ''}
          );

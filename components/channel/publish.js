@@ -7,30 +7,30 @@ import { Message, ChannelParameter } from '@asyncapi/parser';
  * Component which returns a function which publishes to the given channel
  * 
  * @param {string} defaultContentType 
- * @param {string} channelName to publish to
- * @param {Message} message which is being published
+ * @param {string} channelPath to publish to
+ * @param {Message[]} messages which is being published
  * @param {Object.<string, ChannelParameter>} channelParameters parameters to the channel
  */
-export function Publish(defaultContentType, channelName, message, channelParameters) {
+export function Publish(defaultContentType, channelPath, messages, channelParameters) {
   //Determine the publish operation based on whether the message type is null
-  let publishOperation = `await nc.publish(${realizeChannelName(channelParameters, channelName)}, null);`;
+  let publishOperation = `await nc.publish(${realizeChannelName(channelParameters, channelPath)}, null);`;
   if (messageHasNotNullPayload(message.payload())) {
     publishOperation = `
       ${OnSendingData(message, defaultContentType)}
-      await client.publish(${realizeChannelName(channelParameters, channelName)}, dataToSend);
+      await client.publish(${realizeChannelName(channelParameters, channelPath)}, dataToSend);
     `;
   }
   return `
   /**
    * Internal functionality to publish message to channel 
-   * ${channelName}
+   * ${channelPath}
    * 
    * @param message to publish
    * @param client to publish with
    ${renderJSDocParameters(channelParameters)}
    */
     export function publish(
-      message: ${getMessageType(message)},
+      message: ${getMessageType(messages)},
       client: Client
       ${realizeParametersForChannelWrapper(channelParameters)}
       ): Promise<void> {

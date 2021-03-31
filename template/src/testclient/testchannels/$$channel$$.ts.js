@@ -6,7 +6,7 @@ import { Request } from '../../../../components/channel/request';
 import { General } from '../../../../components/channel/general';
 import { pascalCase, isRequestReply, isReplier, isRequester, isPubsub, camelCase} from '../../../../utils/index';
 // eslint-disable-next-line no-unused-vars
-import { AsyncAPIDocument, Channel } from '@asyncapi/parser';
+import { IntentAsyncAPIDocument, IntentChannel } from '@asyncapi/parser';
 
 /**
  * @typedef TemplateParameters
@@ -17,9 +17,9 @@ import { AsyncAPIDocument, Channel } from '@asyncapi/parser';
 /**
  * @typedef RenderArgument
  * @type {object}
- * @property {AsyncAPIDocument} asyncapi received from the generator.
- * @property {Channel} channel 
- * @property {string} channelName 
+ * @property {IntentAsyncAPIDocument} asyncapi received from the generator.
+ * @property {IntentChannel} channel 
+ * @property {string} channelPath 
  * @property {TemplateParameters} params received from the generator.
  */
 
@@ -28,19 +28,19 @@ import { AsyncAPIDocument, Channel } from '@asyncapi/parser';
  * 
  * NOTICE this is a reverse of the normal client channel.
  * 
- * @param {AsyncAPIDocument} asyncapi 
- * @param {Channel} channel 
- * @param {string} channelName 
+ * @param {IntentAsyncAPIDocument} asyncapi 
+ * @param {IntentChannel} channel 
+ * @param {string} channelPath 
  * @param {TemplateParameters} params 
  */
 // eslint-disable-next-line sonarjs/cognitive-complexity
-function getChannelCode(asyncapi, channel, channelName, params) {
+function getChannelCode(asyncapi, channel, channelPath, params) {
   let channelcode;
   if (isRequestReply(channel)) {
     if (isRequester(channel)) {
       channelcode = Reply(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         channel.publish() ? channel.publish().message(0) : undefined,
         channel.subscribe() ? channel.subscribe().message(0) : undefined,
         channel.parameters(),
@@ -50,7 +50,7 @@ function getChannelCode(asyncapi, channel, channelName, params) {
     if (isReplier(channel)) {
       channelcode = Request(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         channel.publish() ? channel.publish().message(0) : undefined,
         channel.subscribe() ? channel.subscribe().message(0) : undefined,
         channel.parameters()
@@ -62,14 +62,14 @@ function getChannelCode(asyncapi, channel, channelName, params) {
     if (channel.hasSubscribe()) {
       channelcode = Subscribe(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         channel.subscribe() ? channel.subscribe().message(0) : undefined,
         channel.parameters());
     }
     if (channel.hasPublish()) {
       channelcode = Publish(
         asyncapi.defaultContentType(), 
-        channelName, 
+        channelPath, 
         channel.publish() ? channel.publish().message(0) : undefined, 
         channel.parameters());
     }
@@ -82,19 +82,19 @@ function getChannelCode(asyncapi, channel, channelName, params) {
  * 
  * @param {RenderArgument} param0 render arguments received from the generator.
  */
-export default function channelRender({ asyncapi, channelName, channel, params }) {
-  const publishMessage = channel.publish() ? channel.publish().message(0) : undefined;
-  const subscribeMessage = channel.subscribe() ? channel.subscribe().message(0) : undefined;
+export default function channelRender({ asyncapi, channelPath, channel, params }) {
+  const publishMessage = channel.messagesPublishes();
+  const subscribeMessage = channel.messagesSubscribes();
 
-  return <File name={`${pascalCase(channelName)}.ts`}>
+  return <File name={`${pascalCase(channelPath)}.ts`}>
     {`
 ${General(channel, publishMessage, subscribeMessage, '../..')}
 
 /**
- * Module which wraps functionality for the \`${channelName}\` channel
- * @module ${camelCase(channelName)}
+ * Module which wraps functionality for the \`${channelPath}\` channel
+ * @module ${camelCase(channelPath)}
  */
-${getChannelCode(asyncapi, channel, channelName, params)}
+${getChannelCode(asyncapi, channel, channelPath, params)}
 `}
   </File>;
 }

@@ -4,7 +4,7 @@ const {TypeScriptGenerator, FormatHelpers} = require('@asyncapi/generator-model-
 /**
  * @typedef RenderArgument
  * @type {object}
- * @property {AsyncAPIDocument} asyncapi received from the generator.
+ * @property {IntentAsyncAPIDocument} asyncapi received from the generator.
  */
 
 /**

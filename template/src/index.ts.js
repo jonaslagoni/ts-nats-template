@@ -33,8 +33,8 @@ import { IntentAsyncAPIDocument } from '@asyncapi/parser';
 function getChannelWrappers(asyncapi, params) {
   let channelWrappers = [];
   channelWrappers = asyncapi.channels().map((channel) => {
-    const publishMessage = channel.messagesPublishes();
-    const subscribeMessage = channel.messagesSubscribes();
+    const publishMessages = channel.messagesPublishes();
+    const subscribeMessages = channel.messagesSubscribes();
     const defaultContentType = asyncapi.defaultContentType();
     const channelDescription = channel.description();
     const channelParameters = channel.parameters();
@@ -44,8 +44,8 @@ function getChannelWrappers(asyncapi, params) {
         return Request(
           defaultContentType, 
           channelPath, 
-          subscribeMessage,
-          publishMessage,
+          subscribeMessages,
+          publishMessages,
           channelDescription,
           channelParameters
         );
@@ -54,8 +54,8 @@ function getChannelWrappers(asyncapi, params) {
         return Reply(
           defaultContentType, 
           channelPath, 
-          subscribeMessage,
-          publishMessage,
+          subscribeMessages,
+          publishMessages,
           channelDescription,
           channelParameters,
           params
@@ -68,7 +68,7 @@ function getChannelWrappers(asyncapi, params) {
         return Publish(
           defaultContentType, 
           channelPath, 
-          subscribeMessage, 
+          subscribeMessages, 
           channelDescription, 
           channelParameters);
       }
@@ -76,7 +76,7 @@ function getChannelWrappers(asyncapi, params) {
         return Subscribe(
           defaultContentType, 
           channelPath, 
-          publishMessage, 
+          publishMessages, 
           channelDescription, 
           channelParameters);
       }
